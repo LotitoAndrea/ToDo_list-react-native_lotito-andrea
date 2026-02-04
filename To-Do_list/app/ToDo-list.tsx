@@ -10,7 +10,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';  // ✅ Import corretto!
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Task, Priority, FilterType } from '../types/Task';
 import { useAsyncStorage } from '../hooks/useAsyncStorage';
 import TaskInput from '../components/TaskInput';
