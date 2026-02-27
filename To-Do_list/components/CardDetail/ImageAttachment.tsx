@@ -24,7 +24,7 @@ export default function ImageAttachment({ imageUri, onChangeImage }: Props) {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ['images'],
       quality: 0.8,
       allowsEditing: true,
       aspect: [16, 9],
