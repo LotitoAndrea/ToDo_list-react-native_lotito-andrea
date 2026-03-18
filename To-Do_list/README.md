@@ -1,44 +1,53 @@
 # 📋 KanbanApp — Gestione progetti in stile Trello
 
-Un'applicazione mobile e web per la gestione di progetti e task, ispirata a Trello/Atlassian. Sviluppata con **React Native** ed **Expo**, funziona nativamente su iOS, Android e browser web senza alcuna modifica al codice.
+App mobile e web per organizzare progetti e task in stile Trello. Sviluppata con **React Native** ed **Expo**, funziona su iOS, Android e web con lo stesso codice.
 
 ---
 
-## ✨ Funzionalità principali
+## ✨ Cosa puoi fare
 
 ### 🗂️ Multi-Board
-- Crea quante board vuoi, ognuna con il proprio nome, emoji e colore personalizzato
-- Ogni nuova board viene creata con le colonne predefinite **To Do**, **In Progress** e **Done**
-- Elimina le board che non ti servono più (almeno una board deve rimanere)
+- Crea tutte le board che vuoi con nome, emoji e colore personalizzato
+- Ogni board nasce con colonne predefinite: **To Do**, **In Progress**, **Done**
+- Elimina le board non piu utili (almeno una deve restare)
 
 ### 📌 Gestione Card
-- Crea card all'interno di qualsiasi colonna, con titolo e priorità (Bassa / Media / Alta)
-- Apri una card per modificarne i dettagli:
+- Crea card in qualsiasi colonna con titolo e priorita
+- Apri una card e modifica:
   - **Titolo** e **Descrizione** con salvataggio automatico
-  - **Priorità** con indicatori visivi colorati
-  - **Scadenza** con selettore data nativo
-  - **Etichette** colorate personalizzabili
-  - **Immagine allegata** dalla galleria del dispositivo
-  - **Checklist** con barra di avanzamento
-  - **Membri assegnati** direttamente dalla scheda
+  - **Priorita** con indicatori visivi
+  - **Scadenza** con selettore data
+  - **Etichette** colorate
+  - **Immagine** dalla galleria
+  - **Checklist** con avanzamento
+  - **Membri** assegnati dalla scheda
 
 ### 🔀 Sposta card
-- **Drag & Drop**: su mobile, trascina le card per riordinarle all'interno della colonna
-- **Sposta in un'altra colonna**: tieni premuto la card e seleziona la colonna di destinazione dalla stessa board
-- **Sposta in un'altra board**: dalla stessa schermata, trasferisci la card su una board completamente diversa
+- **Drag & Drop**: su mobile puoi riordinare le card nella colonna
+- **Sposta colonna**: tieni premuto e scegli la colonna di destinazione
+- **Sposta board**: trasferisci la card su un'altra board
 
 ### 👥 Gestione Membri
 - Aggiungi membri con nome, ruolo (**Owner / Admin / Membro / Viewer**) e avatar colorato
-- Assegna ogni membro alle board e alle card di sua competenza
-- Modifica o elimina i membri in qualsiasi momento
+- Assegna i membri a board e card
+- Modifica o elimina i membri quando vuoi
 
 ### 💾 Dati persistenti
-- Tutti i dati vengono salvati localmente sul dispositivo tramite **AsyncStorage**
-- I dati persistono tra una sessione e l'altra senza bisogno di un account o di una connessione internet
+- Tutti i dati sono salvati in locale con **AsyncStorage**
+- Nessun account richiesto, i dati restano tra le sessioni
 
 ---
 
-## 🚀 Come avviare l'applicazione
+## 🧭 Flusso rapido di utilizzo
+1. Crea una board dalla tab **Board**.
+2. Entra nella board e aggiungi card nelle colonne.
+3. Apri una card per definire dettagli, scadenza, checklist e immagini.
+4. Vai in **Membri** per creare persone e assegnarle a board o card.
+5. Trascina o sposta le card tra colonne o board quando serve.
+
+---
+
+## 🚀 Come avviare l'app
 
 ### Requisiti
 - [Node.js](https://nodejs.org/) versione 18 o superiore
@@ -49,13 +58,13 @@ Un'applicazione mobile e web per la gestione di progetti e task, ispirata a Trel
 ### Installazione
 
 ```bash
-# 1. Entra nella cartella del progetto
+# 1) Entra nella cartella del progetto
 cd To-Do_list
 
-# 2. Installa le dipendenze
+# 2) Installa le dipendenze
 npm install
 
-# 3. Avvia il server di sviluppo
+# 3) Avvia il server di sviluppo
 npx expo start
 ```
 
@@ -66,10 +75,10 @@ Dopo aver avviato il server, nel terminale apparirà un QR code e le seguenti op
 | Piattaforma | Come aprire |
 |---|---|
 | **Browser web** | Premi `W` nel terminale oppure vai su `http://localhost:8081` |
-| **iOS (fisico)** | Scansiona il QR code con la fotocamera del telefono (richiede **Expo Go**) |
-| **Android (fisico)** | Scansiona il QR code dall'app **Expo Go** |
-| **Simulatore iOS** | Premi `I` nel terminale (richiede Xcode su Mac) |
-| **Emulatore Android** | Premi `A` nel terminale (richiede Android Studio) |
+| **iOS (fisico)** | Scansiona il QR code con la fotocamera (serve **Expo Go**) |
+| **Android (fisico)** | Scansiona il QR code da **Expo Go** |
+| **Simulatore iOS** | Premi `I` nel terminale (serve Xcode su Mac) |
+| **Emulatore Android** | Premi `A` nel terminale (serve Android Studio) |
 
 > **Expo Go** è disponibile gratuitamente su [App Store](https://apps.apple.com/app/expo-go/id982107779) e [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent).
 
