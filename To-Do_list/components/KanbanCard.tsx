@@ -15,6 +15,8 @@ interface Props {
   card: Card;
   onPress: () => void;
   onLongPress: () => void;
+  dragHandle?: () => void;  // funzione per avviare il drag (DraggableFlatList)
+  isBeingDragged?: boolean;
 }
 
 const COLUMN_WIDTH = Dimensions.get('window').width * 0.78;
@@ -23,7 +25,7 @@ function isOverdue(dueDate: number | null): boolean {
   return dueDate !== null && dueDate < Date.now();
 }
 
-export default function KanbanCard({ card, onPress, onLongPress }: Props) {
+export default function KanbanCard({ card, onPress, onLongPress, dragHandle, isBeingDragged }: Props) {
   const priority = PRIORITY_CONFIG[card.priority];
   const checkDone = card.checklist.filter(i => i.completed).length;
   const checkTotal = card.checklist.length;
@@ -34,8 +36,14 @@ export default function KanbanCard({ card, onPress, onLongPress }: Props) {
     : null;
 
   return (
+    <View style={[styles.cardWrapper, isBeingDragged && styles.cardWrapperDragging]}>
+      {dragHandle && (
+        <TouchableOpacity style={styles.dragHandle} onPressIn={dragHandle} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+          <Text style={styles.dragHandleIcon}>⠿</Text>
+        </TouchableOpacity>
+      )}
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, dragHandle && styles.cardWithHandle]}
       onPress={onPress}
       onLongPress={onLongPress}
       activeOpacity={0.85}
@@ -92,21 +100,41 @@ export default function KanbanCard({ card, onPress, onLongPress }: Props) {
         )}
       </View>
     </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  cardWrapperDragging: {
+    opacity: 0.9,
+    transform: [{ scale: 1.03 }],
+  },
+  dragHandle: {
+    paddingHorizontal: 6,
+    paddingVertical: 10,
+  },
+  dragHandleIcon: {
+    fontSize: 16,
+    color: '#A0AEC0',
+  },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
-    width: COLUMN_WIDTH - 24,
+    flex: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 3,
     elevation: 2,
+  },
+  cardWithHandle: {
+    marginBottom: 0,
   },
   labelsRow: {
     flexDirection: 'row',

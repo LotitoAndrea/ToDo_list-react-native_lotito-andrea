@@ -11,7 +11,7 @@ export enum Priority {
 // FilterType: mantenuto per compatibilità
 export type FilterType = 'all' | 'active' | 'completed';
 
-// ─── NUOVI TIPI PER LA BOARD KANBAN ────────────────────────────────────────
+// ─── TIPI BOARD & KANBAN ────────────────────────────────────────────────────
 
 // ChecklistItem: un singolo elemento di una checklist dentro una card
 export interface ChecklistItem {
@@ -31,6 +31,7 @@ export interface Label {
 export interface Card {
   id: string;
   columnId: string;        // a quale colonna appartiene
+  boardId: string;         // a quale board appartiene
   title: string;           // titolo breve
   description: string;     // testo lungo opzionale
   priority: Priority;
@@ -40,21 +41,63 @@ export interface Card {
   checklist: ChecklistItem[];
   imageUri: string | null; // URI locale dell'immagine allegata
   completed: boolean;      // true = card "Done" (usato per migrazione)
+  order: number;           // posizione nella colonna (per drag & drop)
 }
 
 // Column: una colonna della board (es. "To Do", "In Progress", "Done")
 export interface Column {
   id: string;
+  boardId: string;         // a quale board appartiene
   title: string;
-  color: string;   // colore dell'header della colonna
-  order: number;   // posizione nella board
+  color: string;           // colore dell'header della colonna
+  order: number;           // posizione nella board
 }
 
-// BoardState: stato complessivo salvato in AsyncStorage
+// Board: una singola board (es. "Progetto Alpha", "Personale")
+export interface Board {
+  id: string;
+  title: string;
+  emoji: string;           // emoji rappresentativa
+  description: string;
+  createdAt: number;
+  color: string;           // colore di sfondo della card board
+}
+
+// ─── TIPI MEMBRI ────────────────────────────────────────────────────────────
+
+export enum MemberRole {
+  OWNER  = 'owner',
+  ADMIN  = 'admin',
+  MEMBER = 'member',
+  VIEWER = 'viewer',
+}
+
+export interface Member {
+  id: string;
+  name: string;
+  role: MemberRole;
+  avatarColor: string;     // colore di sfondo dell'avatar
+  assignedBoardIds: string[];
+  assignedCardIds: string[];
+  createdAt: number;
+}
+
+// ─── APP STATE ───────────────────────────────────────────────────────────────
+
+// AppState: stato complessivo salvato in AsyncStorage (sostituisce BoardState)
+export interface AppState {
+  boards: Board[];
+  columns: Column[];
+  cards: Card[];
+  members: Member[];
+  schemaVersion: number;   // versione 3
+}
+
+// BoardState: MANTENUTO per migrazione da board_v2
 export interface BoardState {
   columns: Column[];
   cards: Card[];
-  schemaVersion: number; // usato per rilevare se migrare i vecchi dati
+  schemaVersion: number;
 }
 
 // Task: MANTENUTO per compatibilità — è la forma dei dati vecchi

@@ -16,7 +16,7 @@ import {
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useBoard } from '../../hooks/useBoard';
 import { Priority, Label } from '../../types/Task';
-import { PRIORITY_CONFIG } from '../../constants/priorities';
+import { PRIORITY_CONFIG, ROLE_CONFIG } from '../../constants/priorities';
 import DueDatePicker from '../../components/CardDetail/DueDatePicker';
 import LabelPicker from '../../components/CardDetail/LabelPicker';
 import ChecklistSection from '../../components/CardDetail/ChecklistSection';
@@ -37,6 +37,10 @@ export default function CardDetailScreen() {
     deleteChecklistItem,
     addLabel,
     removeLabel,
+    members,
+    membersForCard,
+    assignMemberToCard,
+    unassignMemberFromCard,
     isLoading,
   } = useBoard();
 
@@ -71,6 +75,14 @@ export default function CardDetailScreen() {
   }, [card, description, updateCard]);
 
   function handleDelete() {
+    // Su web Alert.alert non supporta più bottoni — usa window.confirm
+    if (Platform.OS === 'web') {
+      const confirmed = (globalThis as any).confirm?.("Vuoi eliminare questa card? L'azione è irreversibile.");
+      if (confirmed && card) {
+        deleteCard(card.id).then(() => router.back());
+      }
+      return;
+    }
     Alert.alert('Elimina card', 'Vuoi eliminare questa card? L\'azione è irreversibile.', [
       { text: 'Annulla', style: 'cancel' },
       {
@@ -210,6 +222,46 @@ export default function CardDetailScreen() {
           />
         </Section>
 
+        {/* Membri */}
+        <Section title="Membri">
+          {members.length === 0 ? (
+            <TouchableOpacity
+              style={styles.memberHint}
+              onPress={() => router.push('/(tabs)/members' as any)}
+            >
+              <Text style={styles.memberHintText}>👥 Nessun membro ancora.</Text>
+              <Text style={styles.memberHintLink}>Aggiungili dalla tab Membri →</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.membersGrid}>
+              {members.map(m => {
+                const isAssigned = m.assignedCardIds.includes(card.id);
+                const roleCfg = ROLE_CONFIG[m.role];
+                const initials = m.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+                return (
+                  <TouchableOpacity
+                    key={m.id}
+                    style={[styles.memberChip, isAssigned && styles.memberChipActive]}
+                    onPress={() => isAssigned
+                      ? unassignMemberFromCard(m.id, card.id)
+                      : assignMemberToCard(m.id, card.id)
+                    }
+                  >
+                    <View style={[styles.memberAvatar, { backgroundColor: m.avatarColor }]}>
+                      <Text style={styles.memberAvatarText}>{initials}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.memberName} numberOfLines={1}>{m.name}</Text>
+                      <Text style={[styles.memberRole, { color: roleCfg.color }]}>{roleCfg.icon} {roleCfg.label}</Text>
+                    </View>
+                    <Text style={styles.memberCheck}>{isAssigned ? '✓' : '+'}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </Section>
+
         {/* Elimina card */}
         <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
           <Text style={styles.deleteBtnText}>🗑️ Elimina card</Text>
@@ -328,4 +380,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#F44336',
   },
+  membersGrid: { gap: 8 },
+  memberChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#F4F5F7', borderRadius: 10,
+    paddingVertical: 8, paddingHorizontal: 10,
+    borderWidth: 1.5, borderColor: 'transparent',
+  },
+  memberChipActive: {
+    backgroundColor: '#EBF8FF', borderColor: '#0079BF',
+  },
+  memberAvatar: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  memberAvatarText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12 },
+  memberName: { fontSize: 13, fontWeight: '600', color: '#172B4D' },
+  memberRole: { fontSize: 11, fontWeight: '500' },
+  memberCheck: { fontSize: 18, color: '#0079BF', fontWeight: '700' },
+  memberHint: {
+    backgroundColor: '#F4F5F7', borderRadius: 10, padding: 14,
+    alignItems: 'center', gap: 4,
+  },
+  memberHintText: { fontSize: 14, color: '#5E6C84', fontWeight: '500' },
+  memberHintLink: { fontSize: 13, color: '#0079BF', fontWeight: '600' },
 });

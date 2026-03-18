@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -12,6 +13,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Column as ColumnType, Card } from '../types/Task';
 import { Priority } from '../types/Task';
@@ -23,15 +25,23 @@ interface Props {
   cards: Card[];
   onAddCard: (columnId: string, title: string, priority: Priority) => void;
   onCardPress: (cardId: string) => void;
-  onMoveCard: (cardId: string) => void; // apre il modal di spostamento
+  onMoveCard: (cardId: string) => void;
+  onDeleteColumn?: () => void;
+  reorderCards?: (columnId: string, orderedIds: string[]) => void;
+  style?: object;
 }
 
-const COLUMN_WIDTH = Dimensions.get('window').width * 0.78;
+const COLUMN_WIDTH  = Dimensions.get('window').width * 0.78;
+const COLUMN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'ios' ? 215 : 180);
 
-export default function Column({ column, cards, onAddCard, onCardPress, onMoveCard }: Props) {
+export default function Column({ column, cards, onAddCard, onCardPress, onMoveCard, onDeleteColumn, reorderCards, style }: Props) {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<Priority>(Priority.MEDIUM);
+  const [localCards, setLocalCards] = useState<Card[]>(cards);
+
+  // Sincronizza localCards quando le prop cambiano (nuove card, etc.)
+  React.useEffect(() => { setLocalCards(cards); }, [cards]);
 
   function handleAddCard() {
     if (!newTitle.trim()) return;
@@ -42,10 +52,10 @@ export default function Column({ column, cards, onAddCard, onCardPress, onMoveCa
   }
 
   return (
-    <View style={[styles.column, { width: COLUMN_WIDTH }]}>
+    <View style={[styles.column, { width: COLUMN_WIDTH }, style]}>
       {/* Header colonna */}
       <View style={[styles.header, { backgroundColor: column.color }]}>
-        <Text style={styles.headerTitle}>{column.title}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{column.title}</Text>
         <View style={styles.headerRight}>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{cards.length}</Text>
@@ -57,32 +67,80 @@ export default function Column({ column, cards, onAddCard, onCardPress, onMoveCa
           >
             <Text style={styles.addButtonText}>＋</Text>
           </TouchableOpacity>
+          {onDeleteColumn && (
+            <TouchableOpacity
+              style={styles.deleteColButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={() => {
+                if (Platform.OS === 'web') {
+                  if ((globalThis as any).confirm?.(`Eliminare la colonna "${column.title}"? Verranno eliminate anche le ${cards.length} card al suo interno.`)) {
+                    onDeleteColumn();
+                  }
+                } else {
+                  Alert.alert(
+                    'Elimina colonna',
+                    `Eliminare "${column.title}"? Verranno eliminate anche le ${cards.length} card al suo interno.`,
+                    [
+                      { text: 'Annulla', style: 'cancel' },
+                      { text: 'Elimina', style: 'destructive', onPress: onDeleteColumn },
+                    ]
+                  );
+                }
+              }}
+            >
+              <Text style={styles.deleteColButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
       {/* Lista card */}
-      <ScrollView
-        style={styles.cardList}
-        contentContainerStyle={styles.cardListContent}
-        showsVerticalScrollIndicator={false}
-        nestedScrollEnabled
-      >
-        {cards.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Nessuna card</Text>
-            <Text style={styles.emptyHint}>Premi ＋ per aggiungerne una</Text>
-          </View>
-        ) : (
-          cards.map(card => (
+      {Platform.OS === 'web' ? (
+        <ScrollView
+          style={styles.cardList}
+          contentContainerStyle={styles.cardListContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {localCards.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Nessuna card</Text>
+              <Text style={styles.emptyHint}>Premi ＋ per aggiungerne una</Text>
+            </View>
+          ) : (
+            localCards.map(card => (
+              <KanbanCard
+                key={card.id}
+                card={card}
+                onPress={() => onCardPress(card.id)}
+                onLongPress={() => onMoveCard(card.id)}
+              />
+            ))
+          )}
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={localCards}
+          keyExtractor={(item: Card) => item.id}
+          style={styles.cardList}
+          contentContainerStyle={styles.cardListContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Nessuna card</Text>
+              <Text style={styles.emptyHint}>Premi ＋ per aggiungerne una</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
             <KanbanCard
-              key={card.id}
-              card={card}
-              onPress={() => onCardPress(card.id)}
-              onLongPress={() => onMoveCard(card.id)}
+              card={item}
+              onPress={() => onCardPress(item.id)}
+              onLongPress={() => onMoveCard(item.id)}
             />
-          ))
-        )}
-      </ScrollView>
+          )}
+        />
+      )}
 
       {/* Modal: aggiungi card */}
       <Modal
@@ -171,7 +229,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#EBECF0',
-    maxHeight: '100%',
+    height: COLUMN_HEIGHT,
   },
   header: {
     flexDirection: 'row',
@@ -218,6 +276,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     lineHeight: 22,
+  },
+  deleteColButton: {
+    backgroundColor: 'rgba(0,0,0,0.20)',
+    borderRadius: 10,
+    width: 26,
+    height: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteColButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   cardList: {
     flex: 1,
